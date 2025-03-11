@@ -73,8 +73,8 @@ class CustomImageDataset(Dataset):
 # Hyperparameters
 latent_dim = 100
 batch_size = 64
-n_epochs = 200
-lr = 0.0001  # ปรับค่า learning rate
+n_epochs = 5001
+lr = 0.00005  # ปรับค่า learning rate
 n_critic = 5
 lambda_gp = 10  # ค่า lambda สำหรับ gradient penalty
 
@@ -102,7 +102,13 @@ def save_image(img_tensor, epoch, nrow=8, ncol=8, filename='generated_images.png
     plt.figure(figsize=(ncol, nrow))
     plt.imshow(img_grid.permute(1, 2, 0).cpu().numpy())
     plt.axis('off')
-    plt.savefig(f'epoch_{epoch}_{filename}')
+    
+    # Ensure the directory exists
+    save_dir = 'set3'
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Save the image
+    plt.savefig(os.path.join(save_dir, f'epoch_{epoch}_{filename}'))
     plt.close()
 
 # Gradient penalty function
