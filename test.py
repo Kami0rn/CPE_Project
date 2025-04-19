@@ -91,7 +91,7 @@ class CustomImageDataset(Dataset):
 # -------------------------------
 latent_dim = 100
 batch_size = 64
-n_epochs = 5001
+n_epochs = 10001
 lr = 0.0001  # Adjusted learning rate
 n_critic = 5
 lambda_gp = 10
@@ -127,10 +127,12 @@ optimizer_D = optim.Adam(discriminator.parameters(), lr=lr, betas=(0.5, 0.9))
 # -------------------------------
 #   Directories for saving
 # -------------------------------
-save_dir_images = 'set5'
-save_dir_models = 'model_checkpoints5'
+save_dir_images = 'set9'
+save_dir_models = 'model_checkpoints9'
+save_dir_loss = 'plot_loss_9'
 os.makedirs(save_dir_images, exist_ok=True)
 os.makedirs(save_dir_models, exist_ok=True)
+os.makedirs(save_dir_loss, exist_ok=True)
 
 # -------------------------------
 #   Function: Save Generated Images
@@ -166,8 +168,24 @@ def compute_gradient_penalty(D, real_samples, fake_samples):
     return gradient_penalty
 
 # -------------------------------
+#   Function: Plot and Save Losses
+# -------------------------------
+def plot_and_save_losses(epoch, g_losses, d_losses):
+    plt.figure()
+    plt.plot(g_losses, label='Generator Loss')
+    plt.plot(d_losses, label='Discriminator Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(os.path.join(save_dir_loss, f'loss_epoch_{epoch}.png'))
+    plt.close()
+
+# -------------------------------
 #   Training Loop (Improved)
 # -------------------------------
+g_losses = []
+d_losses = []
+
 for epoch in range(n_epochs):
     for i, (imgs, _) in enumerate(dataloader):
         real_imgs = imgs.to(device)
@@ -201,11 +219,14 @@ for epoch in range(n_epochs):
             loss_G.backward()
             optimizer_G.step()
     
+    g_losses.append(loss_G.item())
+    d_losses.append(loss_D.item())
+
     save_image(gen_imgs, epoch)
 
     # Logging and saving
     print(f"[Epoch {epoch}/{n_epochs}] [D loss: {loss_D.item():.4f}] [G loss: {loss_G.item():.4f}]")
     if epoch % 10 == 0:
-        # save_image(gen_imgs, epoch)
         torch.save(generator.state_dict(), os.path.join(save_dir_models, f"generator_epoch_{epoch}.pth"))
         torch.save(discriminator.state_dict(), os.path.join(save_dir_models, f"discriminator_epoch_{epoch}.pth"))
+        plot_and_save_losses(epoch, g_losses, d_losses)

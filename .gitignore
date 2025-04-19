@@ -1,4 +1,5 @@
 /images
 /plots*
+/plot_loss*
 /model_checkpoints*
 /set*
